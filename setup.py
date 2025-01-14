@@ -1,5 +1,4 @@
 from setuptools import find_packages, setup
-from typing import List
 
 # Function to get the requirements from the requirements.txt file
 def get_requirements(file):
