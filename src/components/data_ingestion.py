@@ -25,7 +25,7 @@ class DataIngestion:
         try:
             # Loading the data from the data path
             data = pd.read_csv("src/notebook/data/students.csv")
-            logging.info("Data loaded successfully")
+            logging.info(f"Data loaded successfully from {self.config.data_path}")
 
             # Creating folder for train and test data if it does not exist
             os.makedirs(os.path.dirname(self.config.data_path), exist_ok=True)
@@ -52,3 +52,9 @@ class DataIngestion:
         except Exception as e:
             logging.error("Error loading data")
             raise CustomException(e, sys)
+
+
+if __name__ == "__main__":
+    config = DataIngestionConfig()
+    data_ingestion = DataIngestion(config)
+    data_ingestion.load_data()
