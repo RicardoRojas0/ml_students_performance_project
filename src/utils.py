@@ -4,10 +4,10 @@ import numpy as np
 import pandas as pd
 from src.exception import CustomException
 from src.logger import logging
-import pickle
+import dill
 
 
-def save_preprocessor(file_path, preprocessor_obj):
+def save_preprocessor(file_path, preprocessor_object):
     """
     Save the preprocessor object to the disk
     """
@@ -19,7 +19,7 @@ def save_preprocessor(file_path, preprocessor_obj):
 
         # Save the preprocessor object to the disk
         with open(file_path, "wb") as file:
-            pickle.dump(preprocessor_obj, file)
+            dill.dump(preprocessor_object, file)
         logging.info("Preprocessor object saved to the disk")
 
     except Exception as e:

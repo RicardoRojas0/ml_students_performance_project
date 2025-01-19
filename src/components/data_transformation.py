@@ -16,6 +16,7 @@ from sklearn.impute import SimpleImputer
 # Custom imports
 from src.exception import CustomException
 from src.logger import logging
+from src.utils import save_preprocessor
 
 
 @dataclass
@@ -36,7 +37,7 @@ class DataTransformation:
         """
         try:
             # Create lists of numerical and categorical features
-            numerical_features = ["writing score", "reading score"]
+            numerical_features = ["writing_score", "reading_score"]
             categorical_features = [
                 "gender",
                 "race_ethnicity",
@@ -62,7 +63,7 @@ class DataTransformation:
                 steps=[
                     ("imputer", SimpleImputer(strategy="most_frequent")),
                     ("encoder", OneHotEncoder()),
-                    ("scaler", StandardScaler()),
+                    ("scaler", StandardScaler(with_mean=False)),
                 ]
             )
             logging.info("Categorical features pipeline created and encoded")
@@ -80,7 +81,7 @@ class DataTransformation:
             logging.error(f"Error in data transformation: {e}")
             raise CustomException(e, sys)
 
-    def InitiateDataTransformation(self, train_data_path, test_data_path):
+    def initiate_data_transformation(self, train_data_path, test_data_path):
         """
         This method is used to initiate the data transformation process
         """
@@ -95,7 +96,7 @@ class DataTransformation:
             logging.info("Data transformation initiated successfully")
 
             # Define the target feature
-            target_feature = "math score"
+            target_feature = "math_score"
 
             # Create dependent and independent variables for train and test data
             train_features = train_data.drop(target_feature, axis=1)
@@ -120,11 +121,12 @@ class DataTransformation:
             logging.info(
                 "Transformed features concatenated with the target feature successfully"
             )
-            
+
             save_preprocessor(
                 file_path=self.config.preprocessor_path,
-                preprocessor_object = preprocessor
+                preprocessor_object=preprocessor,
             )
+            logging.info("Preprocessor saved successfully")
 
             return (
                 train_array,

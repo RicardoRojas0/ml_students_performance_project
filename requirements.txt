@@ -9,4 +9,5 @@ catboost
 xgboost
 ipywidgets
 graphviz
+dill
 -e .

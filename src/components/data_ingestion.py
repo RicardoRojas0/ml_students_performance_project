@@ -5,6 +5,10 @@ from src.logger import logging
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from dataclasses import dataclass
+from src.components.data_transformation import (
+    DataTransformation,
+    DataTransformationConfig,
+)
 
 
 # Data ingestion configuration class to store the data paths
@@ -55,6 +59,12 @@ class DataIngestion:
 
 
 if __name__ == "__main__":
+    # Load the data and split it into train and test data
     config = DataIngestionConfig()
     data_ingestion = DataIngestion(config)
-    data_ingestion.load_data()
+    train_data, test_data = data_ingestion.load_data()
+
+    # Initiate the data transformation process
+    data_transformation_config = DataTransformationConfig()
+    data_transformation = DataTransformation(data_transformation_config)
+    data_transformation.initiate_data_transformation(train_data, test_data)
