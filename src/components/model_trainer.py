@@ -13,8 +13,7 @@ from sklearn.ensemble import (
 from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.tree import DecisionTreeRegressor
-
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import r2_score
 
 # Custom imports
 from src.exception import CustomException
@@ -30,7 +29,6 @@ class ModelTrainerConfig:
 class ModelTrainer:
     def __init__(self, config: ModelTrainerConfig):
         self.config = config
-        self.model = None
 
     def initiate_model_trainer(self, train_array, test_array):
         """
@@ -60,14 +58,18 @@ class ModelTrainer:
                 "Gradient Boosting": GradientBoostingRegressor(),
                 "XGBoost": XGBRegressor(),
             }
-
-            # Create a dictionary of hyperparameters for the models
+            
             params = {
                 "Linear Regression": {
                     "fit_intercept": [True, False],
                 },
                 "Decision Tree": {
-                    "criterion": ['squared_error', 'absolute_error', 'friedman_mse', 'poisson'],
+                    "criterion": [
+                        "squared_error",
+                        "absolute_error",
+                        "friedman_mse",
+                        "poisson",
+                    ],
                     "max_depth": [5, 10, 15, 20],
                     "max_features": ["sqrt", "log2"],
                 },
@@ -90,8 +92,10 @@ class ModelTrainer:
                 "XGBoost": {
                     "n_estimators": [50, 100, 200, 400],
                     "learning_rate": [0.01, 0.1, 1],
-                }
+                },
             }
+
+            # Create a dictionary of hyperparameters for the models
 
             # Evaluate the models using the evaluate_models function
             model_report: dict = evaluate_models(
@@ -100,25 +104,21 @@ class ModelTrainer:
                 y_train=y_train,
                 X_test=X_test,
                 y_test=y_test,
-                params=params,
+                param=params,
             )
 
-            # Get the best model name and score
-            best_model_name = max(
-                model_report, key=lambda x: model_report[x]["R2 Score"]
-            )
-            logging.info(f"Best model: {best_model_name}")
+            # Get the best model based on the R2 Score
+            best_model_score = max(sorted(model_report.values()))
+            best_model_name = list(model_report.keys())[
+                list(model_report.values()).index(best_model_score)
+            ]
 
-            best_model_score = model_report[best_model_name]["R2 Score"]
-            logging.info(f"Best model score: {best_model_score}")
-
-            # Save the best model to the disk
             best_model = models[best_model_name]
 
             # Condition to check if the best model score is greater than 0.6
             if best_model_score < 0.6:
                 logging.info("Best model score is less than 0.6")
-                raise CustomException("Best model score is less than 0.6", sys)
+                raise CustomException("Best model score is less than 0.6")
 
             logging.info(
                 "Best model found on both train and test data based on R2 Score"
@@ -128,8 +128,12 @@ class ModelTrainer:
             save_object(file_path=self.config.trained_model_path, object=best_model)
             logging.info("Best model saved to the disk")
 
+            # Predict the test data using the best model and calculate the R2 Score
+            predicted = best_model.predict(X_test)
+            r2_score_result = r2_score(y_test, predicted)
+
             # Return the best model name and score
-            return best_model_name, best_model_score
+            return r2_score_result
 
         except Exception as e:
             raise CustomException(e, sys)

@@ -5,7 +5,7 @@ import pandas as pd
 from src.exception import CustomException
 from src.logger import logging
 import dill
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import r2_score
 from sklearn.model_selection import GridSearchCV
 
 
@@ -19,46 +19,57 @@ def save_object(file_path, object):
         os.makedirs(dir_path, exist_ok=True)
         logging.info(f"Directory created at {dir_path}")
 
-        # Save the preprocessor object to the disk
+        # Save the object to the disk
         with open(file_path, "wb") as file:
             dill.dump(object, file)
-        logging.info("Preprocessor object saved to the disk")
+        logging.info("Object saved to the disk")
 
     except Exception as e:
         logging.error(f"Error occurred: {str(e)}")
         raise CustomException(e, sys)
 
 
-def evaluate_models(models, X_train, y_train, X_test, y_test, params):
-    # Dictionary to store the evaluation metrics
-    report = {}
+def load_object(file_path):
+    """
+    Load the object from the disk
+    """
+    try:
+        # Load the object from the disk
+        with open(file_path, "rb") as file_object:
+            return dill.load(file_object)
+        logging.info("Object loaded from the disk")
 
-    # Train and evaluate the models
-    for model_name, model in models.items():
-        # Get the hyperparameters for the current model
-        param_grid = params.get(model_name, {})
+    except Exception as e:
+        raise CustomException(e, sys)
 
-        # Perform GridSearchCV to find the best hyperparameters
-        grid_search = GridSearchCV(
-            estimator=model, param_grid=param_grid, cv=5, scoring="r2", n_jobs=-1
-        )
-        grid_search.fit(X_train, y_train)
 
-        # Get the best model from GridSearchCV
-        best_model = grid_search.best_estimator_
+def evaluate_models(models, X_train, y_train, X_test, y_test, param):
+    try:
+        # Dictionary to store the evaluation metrics
+        report = {}
 
-        # Predict using the best model
-        y_pred = best_model.predict(X_test)
+        # Train and evaluate the models
+        for i in range(len(models)):
+            model = list(models.values())[i]
+            params = param[list(models.keys())[i]]
 
-        report[model_name] = {
-            "Mean Absolute Error": mean_absolute_error(y_test, y_pred),
-            "Mean Squared Error": mean_squared_error(y_test, y_pred),
-            "Root Mean Squared Error": np.sqrt(mean_squared_error(y_test, y_pred)),
-            "R2 Score": r2_score(y_test, y_pred),
-            "Adjusted R2 Score": 1
-            - (1 - r2_score(y_test, y_pred))
-            * (len(y_test) - 1)
-            / (len(y_test) - X_test.shape[1] - 1),
-        }
+            # Grid search to find the best hyperparameters
+            grid_seach = GridSearchCV(estimator=model, param_grid=params, cv=5)
+            grid_seach.fit(X_train, y_train)
 
-    return report
+            # Train the model
+            model.set_params(**grid_seach.best_params_)
+            model.fit(X_train, y_train)
+
+            # Make predictions
+            y_pred = model.predict(X_test)
+
+            # Calculate the evaluation metrics
+            test_model_score = r2_score(y_test, y_pred)
+
+            # Store the evaluation metrics in the report
+            report[list(models.keys())[i]] = test_model_score
+
+        return report
+    except Exception as e:
+        raise CustomException(e, sys)
