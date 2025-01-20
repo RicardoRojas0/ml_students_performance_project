@@ -61,6 +61,38 @@ class ModelTrainer:
                 "XGBoost": XGBRegressor(),
             }
 
+            # Create a dictionary of hyperparameters for the models
+            params = {
+                "Linear Regression": {
+                    "fit_intercept": [True, False],
+                },
+                "Decision Tree": {
+                    "criterion": ['squared_error', 'absolute_error', 'friedman_mse', 'poisson'],
+                    "max_depth": [5, 10, 15, 20],
+                    "max_features": ["sqrt", "log2"],
+                },
+                "Random Forest": {
+                    "n_estimators": [8, 16, 34, 64, 128, 256],
+                    "max_features": ["sqrt", "log2"],
+                },
+                "KNN": {
+                    "n_neighbors": [3, 5, 7, 9],
+                    "weights": ["uniform", "distance"],
+                },
+                "AdaBoost": {
+                    "n_estimators": [50, 100, 200, 400],
+                    "learning_rate": [0.01, 0.1, 1],
+                },
+                "Gradient Boosting": {
+                    "n_estimators": [50, 100, 200, 400],
+                    "learning_rate": [0.01, 0.1, 1],
+                },
+                "XGBoost": {
+                    "n_estimators": [50, 100, 200, 400],
+                    "learning_rate": [0.01, 0.1, 1],
+                }
+            }
+
             # Evaluate the models using the evaluate_models function
             model_report: dict = evaluate_models(
                 models=models,
@@ -68,6 +100,7 @@ class ModelTrainer:
                 y_train=y_train,
                 X_test=X_test,
                 y_test=y_test,
+                params=params,
             )
 
             # Get the best model name and score

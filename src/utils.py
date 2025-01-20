@@ -6,6 +6,7 @@ from src.exception import CustomException
 from src.logger import logging
 import dill
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.model_selection import GridSearchCV
 
 
 def save_object(file_path, object):
@@ -28,14 +29,26 @@ def save_object(file_path, object):
         raise CustomException(e, sys)
 
 
-def evaluate_models(models, X_train, y_train, X_test, y_test):
+def evaluate_models(models, X_train, y_train, X_test, y_test, params):
     # Dictionary to store the evaluation metrics
     report = {}
 
     # Train and evaluate the models
     for model_name, model in models.items():
-        model.fit(X_train, y_train)
-        y_pred = model.predict(X_test)
+        # Get the hyperparameters for the current model
+        param_grid = params.get(model_name, {})
+
+        # Perform GridSearchCV to find the best hyperparameters
+        grid_search = GridSearchCV(
+            estimator=model, param_grid=param_grid, cv=5, scoring="r2", n_jobs=-1
+        )
+        grid_search.fit(X_train, y_train)
+
+        # Get the best model from GridSearchCV
+        best_model = grid_search.best_estimator_
+
+        # Predict using the best model
+        y_pred = best_model.predict(X_test)
 
         report[model_name] = {
             "Mean Absolute Error": mean_absolute_error(y_test, y_pred),
