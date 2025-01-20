@@ -16,7 +16,7 @@ from sklearn.impute import SimpleImputer
 # Custom imports
 from src.exception import CustomException
 from src.logger import logging
-from src.utils import save_preprocessor
+from src.utils import save_object
 
 
 @dataclass
@@ -122,9 +122,9 @@ class DataTransformation:
                 "Transformed features concatenated with the target feature successfully"
             )
 
-            save_preprocessor(
+            save_object(
                 file_path=self.config.preprocessor_path,
-                preprocessor_object=preprocessor,
+                object=preprocessor,
             )
             logging.info("Preprocessor saved successfully")
 
